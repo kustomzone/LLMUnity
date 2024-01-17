@@ -17,5 +17,5 @@ jobs:
       - name: download model
         run: curl -L -o model.gguf https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q2_K.gguf?download=true
       - name: run command
-        run: llamafile-0.6/bin/llamafile --port 13333 -m model.gguf --log-disable --nobrowser
-        timeout-minutes: 2
+        run: sh -c "llamafile-0.6/bin/llamafile --port 13333 -m model.gguf --log-disable --nobrowser"
+        timeout-minutes: 1
