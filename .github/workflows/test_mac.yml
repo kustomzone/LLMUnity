@@ -2,8 +2,10 @@ name: test_mac
 on: push
 jobs: 
   build:
-    runs-on: macos-12
+    runs-on: macos-13-xlarge
     steps: 
+      - name: uname
+        run: uname -m
       - name: download llamafile
         run: curl -L -o llamafile-0.6.zip https://github.com/Mozilla-Ocho/llamafile/releases/download/0.6/llamafile-0.6.zip
       - name: unzip llamafile
