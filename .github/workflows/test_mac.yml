@@ -16,3 +16,4 @@ jobs:
         run: curl -L -o model.gguf https://huggingface.co/afrideva/tiny-random-BloomForCausalLM-GGUF/resolve/main/tiny-random-bloomforcausallm.q2_k.gguf?download=true
       - name: run command
         run: llamafile-0.6/bin/llamafile --port 13333 -m model.gguf --log-disable --nobrowser
+        timeout-minutes: 1
