@@ -5,13 +5,13 @@ using UnityEngine.Networking;
 
 namespace LLMUnity
 {
-    public class ClientAttribute : PropertyAttribute { }
-    public class ServerAttribute : PropertyAttribute { }
-    public class ModelAttribute : PropertyAttribute { }
-    public class ChatAttribute : PropertyAttribute { }
-    public class ClientAdvancedAttribute : PropertyAttribute { }
-    public class ServerAdvancedAttribute : PropertyAttribute { }
-    public class ModelAdvancedAttribute : PropertyAttribute { }
+    public class ClientAttribute : PropertyAttribute {}
+    public class ServerAttribute : PropertyAttribute {}
+    public class ModelAttribute : PropertyAttribute {}
+    public class ChatAttribute : PropertyAttribute {}
+    public class ClientAdvancedAttribute : PropertyAttribute {}
+    public class ServerAdvancedAttribute : PropertyAttribute {}
+    public class ModelAdvancedAttribute : PropertyAttribute {}
 
     [DefaultExecutionOrder(-1)]
     public class LLMClient : MonoBehaviour
@@ -47,7 +47,7 @@ namespace LLMUnity
             chat.Add(new ChatMessage { role = "system", content = prompt });
         }
 
-        public async void Awake()
+        public async void Start()
         {
             // initialise the prompt and set the keep tokens based on its length
             currentPrompt = prompt;

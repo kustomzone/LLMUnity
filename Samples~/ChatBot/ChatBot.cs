@@ -14,7 +14,7 @@ namespace LLMUnitySamples
         public Font font;
         public int fontSize = 16;
         public int bubbleWidth = 600;
-        public LLMClient llm;
+        public LLM llm;
         public float textPadding = 10f;
         public float bubbleSpacing = 10f;
         public Sprite sprite;
@@ -51,6 +51,7 @@ namespace LLMUnitySamples
             inputBubble.AddSubmitListener(onInputFieldSubmit);
             inputBubble.AddValueChangedListener(onValueChanged);
             inputBubble.setInteractable(false);
+            llm.debugCallback = inputBubble.SetText;
             _ = llm.Warmup(WarmUpCallback);
         }
 

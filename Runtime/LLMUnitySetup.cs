@@ -7,6 +7,8 @@ using Debug = UnityEngine.Debug;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO.Compression;
+using System;
+using System.Threading;
 
 namespace LLMUnity
 {
@@ -53,6 +55,72 @@ namespace LLMUnity
             if (outputCallback != null) process.BeginOutputReadLine();
             if (errorCallback != null) process.BeginErrorReadLine();
             return process;
+        }
+
+        public static AndroidJavaObject CreateProcessAndroid(
+            string command, string commandArgs = "",
+            Action<string> outputCallback = null, Action<string> errorCallback = null, Action exitCallback = null
+        )
+        {
+            AndroidJavaObject process = null;
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    string fullCommand = $"{command} {commandArgs}";
+                    AndroidJavaClass unityPlayerClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+                    AndroidJavaObject currentActivity = unityPlayerClass.GetStatic<AndroidJavaObject>("currentActivity");
+                    AndroidJavaObject runtime = currentActivity.Call<AndroidJavaObject>("getRuntime");
+                    AndroidJavaObject processBuilder = new AndroidJavaObject("java.lang.ProcessBuilder", fullCommand.Split(' '));
+
+                    process = processBuilder.Call<AndroidJavaObject>("start");
+
+                    if (outputCallback != null)
+                    {
+                        AndroidJavaObject inputStream = process.Call<AndroidJavaObject>("getInputStream");
+                        ReadStreamInBackground(inputStream, outputCallback);
+                    }
+
+                    if (errorCallback != null)
+                    {
+                        AndroidJavaObject errorStream = process.Call<AndroidJavaObject>("getErrorStream");
+                        ReadStreamInBackground(errorStream, errorCallback);
+                    }
+
+                    // process.Call<int>("waitFor"); // Wait for the process to finish
+
+                    // if (exitCallback != null)
+                    // {
+                    //     exitCallback();
+                    // }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"Error running process: {ex.Message}");
+                }
+            });
+            return process;
+        }
+
+        private static void ReadStreamInBackground(AndroidJavaObject stream, Action<string> callback)
+        {
+            new Thread(() =>
+            {
+                try
+                {
+                    AndroidJavaObject inputStreamReader = new AndroidJavaObject("java.io.InputStreamReader", stream);
+                    AndroidJavaObject bufferedReader = new AndroidJavaObject("java.io.BufferedReader", inputStreamReader);
+                    string line;
+                    while ((line = bufferedReader.Call<string>("readLine")) != null)
+                    {
+                        callback(line);
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"Error reading stream: {ex.Message}");
+                }
+            }).Start();
         }
 
         public static string RunProcess(string command, string commandArgs = "", Callback<string> outputCallback = null, Callback<string> errorCallback = null)

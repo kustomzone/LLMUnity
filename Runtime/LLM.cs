@@ -38,8 +38,10 @@ namespace LLMUnity
         [HideInInspector] public float modelCopyProgress = 1;
         private static float binariesDone = 0;
         private Process process;
+        private AndroidJavaObject processAndroid;
         private bool serverListening = false;
         private ManualResetEvent serverBlock = new ManualResetEvent(false);
+        public Callback<string> debugCallback;
 
         private static string GetAssetPath(string relPath = "")
         {
@@ -116,11 +118,11 @@ namespace LLMUnity
 
 #endif
 
-        new public void Awake()
+        new public void Start()
         {
             // start the llm server and run the OnEnable of the client
             StartLLMServer();
-            base.Awake();
+            base.Start();
         }
 
         private string SelectApeBinary()
@@ -148,6 +150,7 @@ namespace LLMUnity
             if (!debug || message == null) return;
             if (logError) Debug.LogError(message);
             else Debug.Log(message);
+            debugCallback?.Invoke(message);
         }
 
         private void DebugLogError(string message)
@@ -159,7 +162,7 @@ namespace LLMUnity
         private void CheckIfListening(string message)
         {
             // Read the output of the llm binary and check if the server has been started and listening
-            DebugLog(message);
+            DebugLogError(message);
             if (serverListening) return;
             try
             {
@@ -171,7 +174,7 @@ namespace LLMUnity
                     serverBlock.Set();
                 }
             }
-            catch { }
+            catch {}
         }
 
         private void ProcessExited(object sender, EventArgs e)
@@ -211,6 +214,7 @@ namespace LLMUnity
                 binary = "sh";
             }
             Debug.Log($"Server command: {binary} {arguments}");
+            debugCallback?.Invoke($"Server command: {binary} {arguments}");
             process = LLMUnitySetup.CreateProcess(binary, arguments, CheckIfListening, DebugLogError, ProcessExited, environment);
         }
 
@@ -233,19 +237,28 @@ namespace LLMUnity
             if (numThreads > 0) arguments += $" -t {numThreads}";
             if (loraPath != "") arguments += $" --lora {EscapeSpaces(loraPath)}";
 
-            string GPUArgument = numGPULayers <= 0 ? "" : $" -ngl {numGPULayers}";
-            RunServerCommand(server, arguments + GPUArgument);
-            serverBlock.WaitOne(60000);
-
-            if (process.HasExited && numGPULayers > 0)
+            if (Application.platform == RuntimePlatform.Android)
             {
-                Debug.Log("GPU failed, fallback to CPU");
-                serverBlock.Reset();
-                RunServerCommand(server, arguments);
+                debugCallback?.Invoke($"Server command: {server} {arguments}");
+                processAndroid = LLMUnitySetup.CreateProcessAndroid(server, arguments, CheckIfListening, DebugLogError);
                 serverBlock.WaitOne(60000);
             }
+            else
+            {
+                string GPUArgument = numGPULayers <= 0 ? "" : $" -ngl {numGPULayers}";
+                RunServerCommand(server, arguments + GPUArgument);
+                serverBlock.WaitOne(60000);
 
-            if (process.HasExited) throw new System.Exception("Server could not be started!");
+                if (process.HasExited && numGPULayers > 0)
+                {
+                    Debug.Log("GPU failed, fallback to CPU");
+                    serverBlock.Reset();
+                    RunServerCommand(server, arguments);
+                    serverBlock.WaitOne(60000);
+                }
+
+                if (process.HasExited) throw new System.Exception("Server could not be started!");
+            }
         }
 
         public void StopProcess()
@@ -255,6 +268,11 @@ namespace LLMUnity
             {
                 process.Kill();
                 process.WaitForExit();
+            }
+            else if (processAndroid != null)
+            {
+                processAndroid.Call("destroy");
+                processAndroid = null;
             }
         }
 
