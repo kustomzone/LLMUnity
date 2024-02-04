@@ -33,6 +33,8 @@ namespace LLMUnity
         private static readonly string apeARM = GetAssetPath("ape-arm64.elf");
         private static readonly string apeX86_64Url = "https://cosmo.zip/pub/cosmos/bin/ape-x86_64.elf";
         private static readonly string apeX86_64 = GetAssetPath("ape-x86_64.elf");
+        private static readonly string apeX86_64MachoUrl = "https://cosmo.zip/pub/cosmos/bin/ape-x86_64.macho";
+        private static readonly string apeX86_64Macho = GetAssetPath("ape-x86_64.macho");
 
         [HideInInspector] public static float binariesProgress = 1;
         [HideInInspector] public float modelProgress = 1;
@@ -121,6 +123,9 @@ namespace LLMUnity
         private string SelectApeBinary()
         {
             // select the corresponding APE binary for the system architecture
+            if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
+                return apeX86_64Macho;
+
             string arch = LLMUnitySetup.RunProcess("uname", "-m");
             Debug.Log($"architecture: {arch}");
             string apeExe;
@@ -218,7 +223,9 @@ namespace LLMUnity
             }
             else if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
             {
-                arguments = $"-c \"{EscapeSpaces(binary)} {arguments}\"";
+                string ape = SelectApeBinary();
+                LLMUnitySetup.makeExecutable(ape);
+                arguments = $"-c \"{EscapeSpaces(ape)} {EscapeSpaces(binary)} {arguments}\"";
                 binary = "sh";
             }
             Debug.Log($"Server command: {binary} {arguments}");
