@@ -30,11 +30,11 @@ namespace LLMUnity
         private static readonly string serverZipUrl = "https://github.com/Mozilla-Ocho/llamafile/releases/download/0.6/llamafile-0.6.zip";
         private static readonly string server = Path.Combine(GetAssetPath(Path.GetFileNameWithoutExtension(serverZipUrl)), "bin/llamafile");
         private static readonly string apeARMUrl = "https://cosmo.zip/pub/cosmos/bin/ape-arm64.elf";
-        private static readonly string apeARM = GetAssetPath("ape-arm64.elf");
+        private static readonly string apeARM = GetAssetPath(Path.GetFileName(apeARMUrl));
         private static readonly string apeX86_64Url = "https://cosmo.zip/pub/cosmos/bin/ape-x86_64.elf";
-        private static readonly string apeX86_64 = GetAssetPath("ape-x86_64.elf");
+        private static readonly string apeX86_64 = GetAssetPath(Path.GetFileName(apeX86_64Url));
         private static readonly string apeX86_64MachoUrl = "https://cosmo.zip/pub/cosmos/bin/ape-x86_64.macho";
-        private static readonly string apeX86_64Macho = GetAssetPath("ape-x86_64.macho");
+        private static readonly string apeX86_64Macho = GetAssetPath(Path.GetFileName(apeX86_64MachoUrl));
 
         [HideInInspector] public static float binariesProgress = 1;
         [HideInInspector] public float modelProgress = 1;
@@ -58,12 +58,14 @@ namespace LLMUnity
             if (binariesProgress < 1) return;
             binariesProgress = 0;
             binariesDone = 0;
-            if (!File.Exists(apeARM)) await LLMUnitySetup.DownloadFile(apeARMUrl, apeARM, false, true, null, SetBinariesProgress);
-            binariesDone += 1;
-            if (!File.Exists(apeX86_64)) await LLMUnitySetup.DownloadFile(apeX86_64Url, apeX86_64, false, true, null, SetBinariesProgress);
-            binariesDone += 1;
-            if (!File.Exists(apeX86_64Macho)) await LLMUnitySetup.DownloadFile(apeX86_64MachoUrl, apeX86_64Macho, false, true, null, SetBinariesProgress);
-            binariesDone += 1;
+            foreach ((string path, string url) in new List<(string, string)>
+                 {
+                     (apeARM, apeARMUrl), (apeX86_64, apeX86_64Url), (apeX86_64Macho, apeX86_64MachoUrl)
+                 })
+            {
+                if (!File.Exists(path)) await LLMUnitySetup.DownloadFile(url, path, false, true, null, SetBinariesProgress);
+                binariesDone += 1;
+            }
             if (!File.Exists(server))
             {
                 string serverZip = Path.Combine(Application.temporaryCachePath, "llamafile.zip");
