@@ -62,6 +62,8 @@ namespace LLMUnity
             binariesDone += 1;
             if (!File.Exists(apeX86_64)) await LLMUnitySetup.DownloadFile(apeX86_64Url, apeX86_64, false, true, null, SetBinariesProgress);
             binariesDone += 1;
+            if (!File.Exists(apeX86_64Macho)) await LLMUnitySetup.DownloadFile(apeX86_64MachoUrl, apeX86_64Macho, false, true, null, SetBinariesProgress);
+            binariesDone += 1;
             if (!File.Exists(server))
             {
                 string serverZip = Path.Combine(Application.temporaryCachePath, "llamafile.zip");
@@ -76,7 +78,7 @@ namespace LLMUnity
 
         public static void SetBinariesProgress(float progress)
         {
-            binariesProgress = binariesDone / 4f + 1f / 4f * progress;
+            binariesProgress = binariesDone / 5f + 1f / 5f * progress;
         }
 
         public void DownloadModel()
