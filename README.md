@@ -48,6 +48,8 @@ LLMUnity is built on top of the awesome [llama.cpp](https://github.com/ggerganov
 - Click the `+` button and select `Add package from git URL`
 - Use the repository URL `https://github.com/undreamai/LLMUnity.git` and click `Add`
 
+On macOS with Apple Silicon you further need to have Xcode Command Line Tools installed.
+
 ## How to use
 For a step-by-step tutorial you can have a look at our guide: 
 
