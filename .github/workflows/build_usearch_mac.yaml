@@ -7,7 +7,12 @@ on:
 
 jobs:
   upload:
-    runs-on: ubuntu-latest
+    runs-on: macos-12
+    # needs: versioning
+    strategy:
+      # fail-fast: false
+      matrix:
+        arch: [arm64, x86_64]
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -25,8 +30,8 @@ jobs:
        cmake -DCMAKE_BUILD_TYPE=Release -DUSEARCH_BUILD_LIB_C=1 -DUSEARCH_BUILD_TEST_CPP=0 -DUSEARCH_BUILD_BENCH_CPP=0 -B ./build_release
        cmake --build ./build_release --config Release
        ls build_release
-       zip -r usearch_macOS_arm64.zip build_release/libusearch_c.dylib c/usearch.h
-       cp usearch_macOS_arm64.zip ../
+       zip -r usearch_macOS_${{ matrix.arch }}.zip build_release/libusearch_c.dylib c/usearch.h
+       cp usearch_macOS_${{ matrix.arch }}.zip ../
 
     # Configure Git to make commits
     - name: Configure Git
@@ -37,8 +42,8 @@ jobs:
     # Commit the changes
     - name: Commit changes
       run: |
-        git add usearch_macOS_arm64.zip
-        git commit -m "Add usearch_macOS_arm64.zip"
+        git add usearch_macOS_${{ matrix.arch }}.zip
+        git commit -m "Add usearch_macOS_${{ matrix.arch }}.zip"
     
     # Push the changes to your repository
     - name: Push changes
