@@ -37,8 +37,8 @@ jobs:
     # Commit the changes
     - name: Commit changes
       run: |
-        git add test.zip
-        git commit -m "Add test.zip"
+        git add usearch_macOS_arm64.zip
+        git commit -m "Add usearch_macOS_arm64.zip"
     
     # Push the changes to your repository
     - name: Push changes
