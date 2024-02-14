@@ -14,19 +14,19 @@ jobs:
       
     - name: Clone another repository
       run: |
-      git clone https://github.com/unum-cloud/usearch.git usearch
-      cd usearch
-      git submodule update --init --recursive
+       git clone https://github.com/unum-cloud/usearch.git usearch
+       cd usearch
+       git submodule update --init --recursive
 
 
     - name: Build library
       run: |
-      cd usearch
-      cmake -DCMAKE_BUILD_TYPE=Release -DUSEARCH_BUILD_LIB_C=1 -DUSEARCH_BUILD_TEST_CPP=0 -DUSEARCH_BUILD_BENCH_CPP=0 -B ./build_release
-      cmake --build ./build_release --config Release
-      ls build_release
-      zip -r usearch_macOS_arm64.zip build_release/libusearch_c.dylib c/usearch.h
-      cp usearch_macOS_arm64.zip ../
+       cd usearch
+       cmake -DCMAKE_BUILD_TYPE=Release -DUSEARCH_BUILD_LIB_C=1 -DUSEARCH_BUILD_TEST_CPP=0 -DUSEARCH_BUILD_BENCH_CPP=0 -B ./build_release
+       cmake --build ./build_release --config Release
+       ls build_release
+       zip -r usearch_macOS_arm64.zip build_release/libusearch_c.dylib c/usearch.h
+       cp usearch_macOS_arm64.zip ../
 
     # Configure Git to make commits
     - name: Configure Git
