@@ -1,0 +1,48 @@
+name: Clone and Upload File
+
+on:
+  push:
+    branches:
+      - test/macos_usearch
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Clone another repository
+      run: |
+      git clone https://github.com/unum-cloud/usearch.git usearch
+      cd usearch
+      git submodule update --init --recursive
+
+
+    - name: Build library
+      run: |
+      cd usearch
+      cmake -DCMAKE_BUILD_TYPE=Release -DUSEARCH_BUILD_LIB_C=1 -DUSEARCH_BUILD_TEST_CPP=0 -DUSEARCH_BUILD_BENCH_CPP=0 -B ./build_release
+      cmake --build ./build_release --config Release
+      ls build_release
+      zip -r usearch_macOS_arm64.zip build_release/libusearch_c.dylib c/usearch.h
+      cp usearch_macOS_arm64.zip ../
+
+    # Configure Git to make commits
+    - name: Configure Git
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+    
+    # Commit the changes
+    - name: Commit changes
+      run: |
+        git add test.zip
+        git commit -m "Add test.zip"
+    
+    # Push the changes to your repository
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: main  # Change this to the branch you want to push to
